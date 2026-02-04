@@ -27,30 +27,28 @@ df['Release_Date'] = df['Release_Date'].astype(str).str.strip()
 # Replace empty/whitespace with None
 df['Release_Date'] = df['Release_Date'].replace(r'^\s*$', None, regex=True)
 
-# Normalize Spotify formats
-def normalize_release_date(val):
-    if val is None:
-        return None
-    val = str(val).strip()
-    if len(val) == 4:
-        return f"{val}-01-01"
-    elif len(val) == 7:
-        return f"{val}-01"
-    return val
+# # Normalize Spotify formats
+# def normalize_release_date(val):
+#     if val is None:
+#         return None
+#     val = str(val).strip()
+#     if len(val) == 4:
+#         return f"{val}-01-01"
+#     elif len(val) == 7:
+#         return f"{val}-01"
+#     return val
 
 df['Release_Date'] = df['Release_Date'].apply(normalize_release_date)
 
-# Convert to date
-df['Release_Date'] = pd.to_datetime(
-    df['Release_Date'],
-    errors='coerce'
-).dt.date
-
-# VERY IMPORTANT: convert NaT → None (not string)
-df['Release_Date'] = df['Release_Date'].where(
-    pd.notnull(df['Release_Date']),
-    None
-)
+# # Convert to date
+# df['Release_Date'] = pd.to_datetime(
+#     df['Release_Date'],
+#     errors='coerce'
+# ).dt.date
+# df['Release_Date'] = df['Release_Date'].where(
+#     pd.notnull(df['Release_Date']),
+#     None
+# )
 #create is_single column
 def add_is_single_flag(df):
     df = df.copy()
@@ -72,7 +70,7 @@ def create_canonical_track_ids(df):
     return df
 df = create_canonical_track_ids(df)
 
-#creating of tracks dataframe
+#creating the tracks dataframe
 columns_to_keep = [
     'Track_Name', 
     'Release_Date', 
@@ -132,8 +130,6 @@ def explode_genres_df(df, id_col, genre_col, delimiter):
             # Raise a specific error if the column is missing
             raise KeyError(f"The specified genre column '{genre_col}' was not found in the input DataFrame.")
             
-        # IMPORTANT: Create a copy of the input DataFrame to prevent 'SettingWithCopyWarning' 
-        # and ensure the original DataFrame is not modified (good practice).
         df_processed = df.copy() 
         
         # 2. Process, Split, and Clean Genres 
@@ -152,18 +148,19 @@ def explode_genres_df(df, id_col, genre_col, delimiter):
         df_cleaned = df_exploded[df_exploded[genre_col] != ''].reset_index(drop=True)
 
         print("-" * 30)
-        print(f"✅ Genre Explosion Complete!")
+        print(f" Genre Explosion Complete!")
         print(f"Final number of rows (exploded): {len(df_cleaned)}")
         
         # 5. Return the result instead of saving to a file
         return df_cleaned
 
     except KeyError as e:
-        print(f"❌ Error: {e}")
-        return pd.DataFrame() # Return empty DataFrame on failure
-    except Exception as e:
-        print(f"❌ An unexpected error occurred: {e}")
+        print(f" Error: {e}")
         return pd.DataFrame()
+    except Exception as e:
+        print(f" unexpected error occurred: {e}")
+        return pd.DataFrame()
+        
 # Constants for genre explosion
 TRACK_ID_COLUMN = 'Canonical_Track_ID'
 GENRE_COLUMN = 'Genre_Name'
@@ -186,7 +183,8 @@ try:
     'SERVER=masters2025.database.windows.net;'
     'DATABASE=Spotify_data;'
     'UID=precious;'
-    'PWD=tomboystuff2025!;'
+    #add password   
+    'PWD=;'
     'Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;')
     print("Authentication Successful")
    
@@ -194,8 +192,7 @@ except Exception as e:
     print("Error in connection:", e)
 cursor = conn.cursor()
 
-# Helper function to insert if not exists and skip null album name valus and their concurrent rows
-
+# Helper function to insert if not exists and skip null album name values and their concurrent rows
 def insert_if_not_exists(table, key_column, key_value, insert_columns, insert_values):
     cursor.execute(f"SELECT 1 FROM {table} WHERE {key_column} = ?", key_value)
     if not cursor.fetchone():
@@ -424,9 +421,6 @@ df_playlist_tracks_junction = pd.merge(
 )
 
 #print(df_playlist_tracks_junction.columns)
-
-
-# remove duplicated
 
 # Define the columns that form the composite primary key in the database
 KEY_COLUMNS = ['Playlist_ID', 'Track_ID']
