@@ -22,7 +22,7 @@ def search_playlists(keyword, limit=50, offset=0):
     results = sp.search(q=keyword, type='playlist', limit=limit, offset=offset)
     playlists = []
     for playlist in results['playlists']['items']:
-        if playlist and 'name' in playlist:  # ✅ Check for valid playlist object
+        if playlist and 'name' in playlist: 
             follower_count = playlist.get('followers', {}).get('total', 0)
             playlists.append({
                 "id": playlist['id'],
@@ -48,8 +48,8 @@ for word in keywords:
         if not playlists:
             break
         all_playlists.extend(playlists)
-        offset += 50  # Go to next batch
-        if offset >= 1000:  # Stop after 1000 per keyword (API practical limit)
+        offset += 50  
+        if offset >= 1000:  
             break
 
 # Convert to DataFrame
